@@ -29,6 +29,9 @@ export interface AnimationConfig {
 export { timingFunctions }
 
 export function animate(config: AnimationConfig): void {
+    // Copy config in order to avoid modification from caller while animating
+    config = {...config}
+
     let relativeTimeSeconds = config.relativeTimeSeconds
     if (! relativeTimeSeconds) {
         if (typeof performance === 'object' && typeof performance.now === 'function') {
