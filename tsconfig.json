@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    // Input
+    "rootDir": "./src/",
+
+    // Type Checking
+    "lib": ["es2015", "dom"],
+    "noImplicitAny": true,
+    "allowUnreachableCode": false,
+    "noUnusedLocals": true,
+    "strict": true,
+
+    // Emit
+    "outDir": "./dist/",
+    "target": "es2015",
+    "module": "nodenext",
+    "sourceMap": true,
+    "removeComments": false,
+    "alwaysStrict": true,
+
+    // Display
+    "noErrorTruncation": true,
+  },
+  "include": ["src/**/*.ts"],
+}

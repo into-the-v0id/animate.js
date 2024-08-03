@@ -10,17 +10,6 @@
 import * as timingFunctions from './timing-functions.js'
 import { TimingFunction } from './timing-functions.js'
 
-declare global {
-    const performance: {
-        readonly now: (() => number)|undefined
-    }|undefined
-    const requestAnimationFrame: ((callback: () => void) => void)|undefined
-    const setImmediate: ((callback: () => void) => void)|undefined
-    const process: {
-        readonly nextTick: ((callback: () => void) => void)|undefined
-    }|undefined
-}
-
 export interface AnimationConfig {
     from: number,
     to: number,
