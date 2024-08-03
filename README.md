@@ -32,6 +32,24 @@ animate({
 })
 ```
 
+```js
+import { animatePromise, timingFunctions } from '@into-the-v0id/animate'
+
+conosle.log('start');
+
+await animatePromise({
+    from: 0.0,
+    to: 1.0,
+    durationSeconds: 0.25,
+    startProgress: 0.5, // Start with 50% animation progress
+    timingFunction: timingFunctions.easeIn(1.0),
+    maxFps: 30,
+    onUpdate: (state) => console.log(state),
+})
+
+conosle.log('end');
+```
+
 ## License
 
 Copyright (C) Oliver Amann
