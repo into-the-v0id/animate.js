@@ -50,3 +50,19 @@ export function easeIn(strength: number = 0.5): TimingFunction {
 export function easeOut(strength: number = 0.5): TimingFunction {
     return cubicBezier(0, 0, 1 - (1 * strength), 1);
 }
+
+export function allOrNothing(threshold: number = 0.5): TimingFunction {
+    const _threshold = threshold
+
+    return function (progress: number): number {
+        return progress >= _threshold ? 1.0 : 0.0
+    }
+}
+
+export function steps(count: number): TimingFunction {
+    const _count = count
+
+    return function (progress: number): number {
+        return Math.floor(progress * _count) / _count
+    }
+}
