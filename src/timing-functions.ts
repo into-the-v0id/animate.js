@@ -20,11 +20,11 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): Tim
     const _y2 = y2
 
     return function (progress: number): number {
-        const diff1 = _x1
-        const diff2 = 1 - _x2
+        const strength1 = _x1
+        const strength2 = 1 - _x2
 
-        const delta1 = _y1 - progress
-        const delta2 = _y2 - progress
+        const targetDelta1 = _y1 - progress
+        const targetDelta2 = _y2 - progress
 
         const progress1 = 1 - progress
         const progress2 = progress
@@ -32,10 +32,10 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): Tim
         const power1 = progress1 ** 2
         const power2 = progress2 ** 2
 
-        const influence1 = delta1 * (diff1 * power1)
-        const influence2 = delta2 * (diff2 * power2)
+        const shift1 = targetDelta1 * (strength1 * power1)
+        const shift2 = targetDelta2 * (strength2 * power2)
 
-        return progress + influence1 + influence2
+        return progress + shift1 + shift2
     }
 }
 
