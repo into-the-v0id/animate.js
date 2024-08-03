@@ -15,12 +15,14 @@ npm install git://github.com/into-the-v0id/animate.js
 ```js
 import { animate, timingFunctions } from '@into-the-v0id/animate'
 
+const element = document.querySelector('#animateMe')
+
 animate({
-    from: 50,
-    to: 275,
+    from: 0,
+    to: 300,
     durationSeconds: 1.5,
     timingFunction: timingFunctions.easeInOut(),
-    onUpdate: (state) => console.log(state),
+    onUpdate: (state) => element.style.left = state + 'px',
 })
 ```
 
