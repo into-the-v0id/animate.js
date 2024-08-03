@@ -22,7 +22,7 @@ export interface AnimationConfig {
     onEnd?: () => void,
     /** Getter for a stable source of time for the envioronment */
     relativeTimeSeconds?: () => number,
-    /** Hook to schedule a task for the current/next iteration of the event loop of the envioronment */
+    /** Hook to schedule a task for the next iteration of the event loop of the envioronment */
     enqueue?: (callback: () => void) => void,
 }
 
@@ -46,9 +46,6 @@ export function animate(config: AnimationConfig): void {
         } else if (typeof setImmediate === 'function') {
             const _setImmediate = setImmediate
             enqueue = (callback) => _setImmediate(callback)
-        } else if (typeof process === 'object' && typeof process.nextTick === 'function') {
-            const _nextTick = process.nextTick
-            enqueue = (callback) => _nextTick(callback)
         } else {
             enqueue = (callback) => setTimeout(callback, 0)
         }
