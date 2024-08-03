@@ -4,10 +4,16 @@ Low level animation library for JavaScript
 
 ## Installation
 
-This package is not available on npm. To use it you will have to install it from source:
+This package is not available on npm. To use it you will have to build it from source:
 
 ```bash
-npm install git://github.com/into-the-v0id/animate.js
+git clone https://github.com/into-the-v0id/animate.js.git ./animate
+cd ./animate
+npm install
+npm pack
+cd ..
+cd your-project
+npm install ../animate/into-the-v0id-animate-0.1.0.tgz
 ```
 
 ## Example
