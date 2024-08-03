@@ -50,7 +50,7 @@ export function animate(config: AnimationConfig): void {
             const _nextTick = process.nextTick
             enqueue = (callback) => _nextTick(callback)
         } else {
-            throw new Error('Unable to detect event loop hook for environment')
+            enqueue = (callback) => setTimeout(callback, 0)
         }
     }
 
