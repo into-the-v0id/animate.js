@@ -17,6 +17,7 @@ export interface AnimationConfig {
     /** Start progress in percent between 0.0 and 1.0 */
     startProgress?: number,
     timingFunction?: TimingFunction,
+    maxFps?: number,
     onStart?: () => void,
     onUpdate: (state: number, stateProgress: number, timeProgress: number) => void,
     onEnd?: () => void,
@@ -54,13 +55,29 @@ export function animate(config: AnimationConfig): void {
         }
     }
 
+    const minHandlerCallElapsed = config.maxFps
+        ? 1 / config.maxFps
+        : null
+    let lastHandlerCallTime: number|null = null;
+
     if (config.onStart) config.onStart();
 
     const startTime = relativeTimeSeconds();
 
     const handler = function (timeProgress: number|null = null) {
+        const currentTime = relativeTimeSeconds()
+
+        if (config.maxFps && minHandlerCallElapsed && lastHandlerCallTime) {
+            const lastHandlerCallElapsed = currentTime - lastHandlerCallTime
+            if (lastHandlerCallElapsed < minHandlerCallElapsed) {
+                enqueue(() => handler());
+
+                return;
+            }
+        }
+
         if (timeProgress === null) {
-            const elapsedTime = relativeTimeSeconds() - startTime
+            const elapsedTime = currentTime - startTime
             timeProgress = elapsedTime / config.durationSeconds
         }
 
@@ -83,6 +100,8 @@ export function animate(config: AnimationConfig): void {
         const state = config.from + ((config.to - config.from) * stateProgress);
 
         config.onUpdate(state, stateProgress, timeProgress)
+
+        lastHandlerCallTime = currentTime
 
         if (timeProgress >= 1.0) {
             if (config.onEnd) config.onEnd();
