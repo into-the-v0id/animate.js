@@ -1,0 +1,30 @@
+{
+  "name": "@into-the-v0id/animate",
+  "description": "Low level animation library for JavaScript",
+  "version": "0.1.0",
+  "license": "MIT",
+  "homepage": "https://github.com/into-the-v0id/animate.js",
+  "author": {
+    "name": "Oliver Amann",
+    "url": "https://github.com/into-the-v0id"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./dist/timing-functions.js": "./dist/timing-functions.js"
+  },
+  "files": [
+    "./dist/"
+  ],
+  "scripts": {
+    "build-clean": "rm -rf ./dist/",
+    "build-js": "tsc ./src/*.ts --lib es2015 --outDir ./dist/",
+    "build-types": "tsc ./src/*.ts --lib es2015 --declaration --emitDeclarationOnly --outDir ./dist/",
+    "build": "npm run build-clean && npm run build-js && npm run build-types"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
