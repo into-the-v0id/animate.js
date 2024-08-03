@@ -4,11 +4,15 @@
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://github.com/into-the-v0id/animate.js",
   "author": {
     "name": "Oliver Amann",
     "url": "https://github.com/into-the-v0id"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/into-the-v0id/animate.js.git"
+  },
+  "homepage": "https://github.com/into-the-v0id/animate.js",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
