@@ -64,11 +64,9 @@ export class Animation {
         if (this.config.enqueue) {
             this.enqueue = this.config.enqueue
         } else if (typeof requestAnimationFrame === 'function') {
-            const _requestAnimationFrame = requestAnimationFrame
-            this.enqueue = (callback) => _requestAnimationFrame(callback)
+            this.enqueue = (callback) => requestAnimationFrame(callback)
         } else if (typeof setImmediate === 'function') {
-            const _setImmediate = setImmediate
-            this.enqueue = (callback) => _setImmediate(callback)
+            this.enqueue = (callback) => setImmediate(callback)
         } else {
             this.enqueue = (callback) => setTimeout(callback, 0)
         }
