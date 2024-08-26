@@ -39,7 +39,10 @@ const animation = animate({
     from: 0,
     to: 100,
     durationSeconds: 2.0,
-    timingFunction: timingFunctions.easeIn(1.0),
+    timingFunction: timingFunctions.gravitate(
+        timingFunctions.allOrNothing(),
+        timingFunctions.linear(),
+    ),
     maxFps: 10,
     progress: 0.5, // Start at 50% animation progress
     onStart: () => console.log('start via callback'),
