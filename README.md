@@ -13,7 +13,7 @@ npm install
 npm pack
 cd ..
 cd your-project
-npm install ../animate/into-the-v0id-animate-0.1.0.tgz
+npm install ../animate/into-the-v0id-animate-0.2.0.tgz
 ```
 
 ## Example
