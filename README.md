@@ -33,21 +33,28 @@ animate({
 ```
 
 ```js
-import { animatePromise, timingFunctions } from '@into-the-v0id/animate'
+import { animate, timingFunctions } from '@into-the-v0id/animate'
 
-conosle.log('start');
-
-await animatePromise({
-    from: 0.0,
-    to: 1.0,
-    durationSeconds: 0.25,
-    startProgress: 0.5, // Start with 50% animation progress
+const animation = animate({
+    from: 0,
+    to: 100,
+    durationSeconds: 2.0,
     timingFunction: timingFunctions.easeIn(1.0),
-    maxFps: 30,
+    maxFps: 10,
+    progress: 0.5, // Start at 50% animation progress
+    onStart: () => console.log('start via callback'),
     onUpdate: (state) => console.log(state),
+    onEnd: () => console.log('end via callback'),
+    autoStart: false,
 })
 
-conosle.log('end');
+animation.start()
+
+setTimeout(() => animation.pause(), 400)
+setTimeout(() => animation.resume(), 800)
+
+animation.promise()
+    .then(() => conosle.log('end via promise'))
 ```
 
 ## License

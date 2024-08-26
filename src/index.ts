@@ -10,81 +10,148 @@
 import * as timingFunctions from './timing-functions.js'
 import { TimingFunction } from './timing-functions.js'
 
+export { timingFunctions }
+
 export interface AnimationConfig {
     from: number,
     to: number,
     durationSeconds: number,
     /** Start progress in percent between 0.0 and 1.0 */
-    startProgress?: number,
+    progress?: number,
     timingFunction?: TimingFunction,
     maxFps?: number,
     onStart?: () => void,
     onUpdate: (state: number, stateProgress: number, timeProgress: number) => void,
+    onPause?: (timeProgress: number) => void,
+    onResume?: (timeProgress: number) => void,
     onEnd?: () => void,
+    onCancel?: () => void,
     /** Getter for a stable source of time for the envioronment */
     relativeTimeSeconds?: () => number,
     /** Hook to schedule a task for the next iteration of the event loop of the envioronment */
     enqueue?: (callback: () => void) => void,
 }
 
-export { timingFunctions }
+export class Animation {
+    private config: AnimationConfig
 
-export function animate(config: AnimationConfig): void {
-    // Copy config in order to avoid modification from caller while animating
-    config = {...config}
+    private getRelativeTimeSeconds: () => number
+    private enqueue: (callback: () => void) => void
 
-    let relativeTimeSeconds = config.relativeTimeSeconds
-    if (! relativeTimeSeconds) {
-        if (typeof performance === 'object' && typeof performance.now === 'function') {
-            relativeTimeSeconds = () => performance.now() / 1000
+    private minHandlerCallTimeElapsed: number|null
+    private lastHandlerCallTime: number|null = null
+
+    private startTime: number|null = null
+    private pauseTime: number|null = null
+    private resumeTime: number|null = null
+    private endTime: number|null = null
+    private cancelTime: number|null = null
+
+    private timeProgress: number
+
+    constructor(config: AnimationConfig) {
+        // Copy config in order to avoid modification from caller
+        this.config = {...config}
+
+        if (this.config.relativeTimeSeconds) {
+            this.getRelativeTimeSeconds = this.config.relativeTimeSeconds
+        } else if (typeof performance === 'object' && typeof performance.now === 'function') {
+            this.getRelativeTimeSeconds = () => performance.now() / 1000
         } else {
-            relativeTimeSeconds = () => Date.now() / 1000
+            this.getRelativeTimeSeconds = () => Date.now() / 1000
         }
-    }
 
-    let enqueue = config.enqueue
-    if (! enqueue) {
-        if (typeof requestAnimationFrame === 'function') {
+        if (this.config.enqueue) {
+            this.enqueue = this.config.enqueue
+        } else if (typeof requestAnimationFrame === 'function') {
             const _requestAnimationFrame = requestAnimationFrame
-            enqueue = (callback) => _requestAnimationFrame(callback)
+            this.enqueue = (callback) => _requestAnimationFrame(callback)
         } else if (typeof setImmediate === 'function') {
             const _setImmediate = setImmediate
-            enqueue = (callback) => _setImmediate(callback)
+            this.enqueue = (callback) => _setImmediate(callback)
         } else {
-            enqueue = (callback) => setTimeout(callback, 0)
+            this.enqueue = (callback) => setTimeout(callback, 0)
         }
+
+        this.minHandlerCallTimeElapsed = this.config.maxFps
+            ? 1 / this.config.maxFps
+            : null
+
+        this.timeProgress = this.config.progress ?? 0.0
     }
 
-    const minHandlerCallElapsed = config.maxFps
-        ? 1 / config.maxFps
-        : null
-    let lastHandlerCallTime: number|null = null;
+    public isRunning(): boolean {
+        return this.hasStarted()
+            && ! this.hasEnded()
+            && ! this.isPaused()
+            && ! this.isCanceled()
+    }
 
-    if (config.onStart) config.onStart();
+    public hasStarted(): boolean {
+        return this.startTime !== null
+    }
 
-    const startTime = relativeTimeSeconds();
+    public start(): void {
+        if (this.hasStarted() || this.isCanceled()) return
 
-    const handler = function (timeProgress: number|null = null) {
-        const currentTime = relativeTimeSeconds()
+        this.startTime = (this.getRelativeTimeSeconds)()
 
-        if (config.maxFps && minHandlerCallElapsed && lastHandlerCallTime) {
-            const lastHandlerCallElapsed = currentTime - lastHandlerCallTime
-            if (lastHandlerCallElapsed < minHandlerCallElapsed) {
-                enqueue(() => handler());
+        if (this.config.onStart) {
+            this.config.onStart()
 
-                return;
+            // set start time again so that we have accurate timings for the handler in case
+            // this.config.onStart() took a long time to execute
+            this.startTime = (this.getRelativeTimeSeconds)()
+        }
+
+        // render initial state and start the loop
+        this.handler(this.timeProgress)
+    }
+
+    private handler(timeProgress: number|null = null): void {
+        // Break the loop since the animation should not be running
+        if (! this.isRunning()) return
+
+        const currentTime = (this.getRelativeTimeSeconds)()
+
+        // limit FPS
+        if (
+            this.config.maxFps
+            && this.minHandlerCallTimeElapsed !== null
+            && this.lastHandlerCallTime !== null
+        ) {
+            const lastHandlerCallTimeElapsed = currentTime - this.lastHandlerCallTime
+            if (lastHandlerCallTimeElapsed < this.minHandlerCallTimeElapsed) {
+                this.scheduleHandlerCall()
+
+                return
             }
         }
 
+        this.lastHandlerCallTime = currentTime
+
         if (timeProgress === null) {
-            const elapsedTime = currentTime - startTime
-            timeProgress = elapsedTime / config.durationSeconds
+            const elapsedTime = currentTime - (this.resumeTime ?? this.startTime ?? currentTime)
+            const additionalTimeProgress = elapsedTime / this.config.durationSeconds
+            timeProgress = this.timeProgress + additionalTimeProgress
         }
 
-        if (config.startProgress) {
-            timeProgress += config.startProgress
+        // end animation
+        if (timeProgress >= 1.0) {
+            this.end()
+
+            return
         }
 
+        this.render(timeProgress)
+        this.scheduleHandlerCall()
+    }
+
+    private scheduleHandlerCall(): void {
+        (this.enqueue)(() => this.handler())
+    }
+
+    private render(timeProgress: number): void {
         if (timeProgress > 1.0) {
             timeProgress = 1.0
         }
@@ -93,42 +160,110 @@ export function animate(config: AnimationConfig): void {
             timeProgress = 0.0
         }
 
-        const stateProgress = config.timingFunction
-            ? config.timingFunction(timeProgress)
+        const stateProgress = this.config.timingFunction
+            ? this.config.timingFunction(timeProgress)
             : timeProgress
 
-        const state = config.from + ((config.to - config.from) * stateProgress);
+        const state = this.config.from + ((this.config.to - this.config.from) * stateProgress)
 
-        config.onUpdate(state, stateProgress, timeProgress)
-
-        lastHandlerCallTime = currentTime
-
-        if (timeProgress >= 1.0) {
-            if (config.onEnd) config.onEnd();
-
-            return;
-        }
-
-        enqueue(() => handler());
+        this.config.onUpdate(state, stateProgress, timeProgress)
     }
 
-    handler(0.0);
-}
+    public isPaused(): boolean {
+        return this.pauseTime !== null
+    }
 
-export function animatePromise(config: AnimationConfig): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const newConfig = {
-            ...config,
-            onEnd: () => {
-                if (config.onEnd) config.onEnd()
+    public pause(): void {
+        if (this.isPaused() || this.isCanceled()) return
+
+        const currentTime = (this.getRelativeTimeSeconds)()
+        const elapsedTime = currentTime - (this.resumeTime ?? this.startTime ?? currentTime)
+        const additionalTimeProgress = elapsedTime / this.config.durationSeconds
+
+        this.timeProgress += additionalTimeProgress
+
+        this.pauseTime = currentTime
+        this.resumeTime = null
+
+        if (this.config.onPause) this.config.onPause(this.timeProgress)
+    }
+
+    public resume(): void {
+        if (! this.isPaused() || this.isCanceled()) return
+
+        this.resumeTime = (this.getRelativeTimeSeconds)()
+        this.pauseTime = null
+
+        if (this.config.onResume) {
+            this.config.onResume(this.timeProgress)
+
+            // set resume time again so that we have accurate timings for the handler in case
+            // this.config.onResume() took a long time to execute
+            this.resumeTime = (this.getRelativeTimeSeconds)()
+        }
+
+        // start loop again
+        this.handler(this.timeProgress)
+    }
+
+    public hasEnded(): boolean {
+        return this.endTime !== null
+    }
+
+    public end(): void {
+        if (this.hasEnded() || this.isCanceled()) return
+
+        this.render(1.0)
+
+        this.timeProgress = 1.0
+        this.endTime = (this.getRelativeTimeSeconds)()
+
+        if (this.config.onEnd) this.config.onEnd()
+    }
+
+    public isCanceled(): boolean {
+        return this.cancelTime !== null
+    }
+
+    public cancel(): void {
+        if (this.isCanceled()) return
+
+        this.cancelTime = (this.getRelativeTimeSeconds)()
+
+        if (this.config.onCancel) this.config.onCancel()
+    }
+
+    public promise(): Promise<void> {
+        if (this.hasEnded()) {
+            return Promise.resolve(undefined)
+        }
+
+        if (this.isCanceled()) {
+            return Promise.reject(undefined)
+        }
+
+        return new Promise((resolve, reject) => {
+            const originalOnEnd = this.config.onEnd
+            this.config.onEnd = () => {
+                if (originalOnEnd) originalOnEnd()
                 resolve(undefined)
             }
-        }
 
-        try {
-            animate(newConfig)
-        } catch (e) {
-            reject(e)
-        }
-    });
+            const originalOnCancel = this.config.onCancel
+            this.config.onCancel = () => {
+                if (originalOnCancel) originalOnCancel()
+                reject(undefined)
+            }
+        })
+    }
+}
+
+export function animate(config: AnimationConfig & {autoStart?: boolean}): Animation {
+    const animation = new Animation(config)
+
+    if (config.autoStart ?? true) {
+        animation.start()
+    }
+
+    return animation
 }
