@@ -8,7 +8,7 @@
  */
 
 import * as timingFunctions from './timing-functions.ts'
-import { TimingFunction } from './timing-functions.ts'
+import type { TimingFunction } from './timing-functions.ts'
 
 export { timingFunctions }
 
