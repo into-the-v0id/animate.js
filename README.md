@@ -12,6 +12,7 @@ This package is not available on npm. To use it you will have to build it from s
 git clone https://github.com/into-the-v0id/animate.js.git ./animate
 cd ./animate
 npm install
+npm run build
 npm pack
 cd ..
 cd your-project
