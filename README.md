@@ -4,6 +4,8 @@ Low level animation library for JavaScript
 
 ## Installation
 
+### NodeJS
+
 This package is not available on npm. To use it you will have to build it from source:
 
 ```bash
@@ -14,6 +16,12 @@ npm pack
 cd ..
 cd your-project
 npm install ../animate/into-the-v0id-animate-0.2.0.tgz
+```
+
+### Deno
+
+```js
+import { animate, timingFunctions } from 'https://raw.githubusercontent.com/into-the-v0id/animate.js/refs/heads/main/src/index.ts'
 ```
 
 ## Example
