@@ -25,6 +25,10 @@ npm install ../animate/into-the-v0id-animate-0.2.0.tgz
 import { animate, timingFunctions } from 'https://raw.githubusercontent.com/into-the-v0id/animate.js/refs/heads/main/src/index.ts'
 ```
 
+### Web
+
+Use one of the installation methods above and bundle it with your own JS.
+
 ## Example
 
 ```js
