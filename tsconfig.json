@@ -9,6 +9,7 @@
     "allowUnreachableCode": false,
     "noUnusedLocals": true,
     "strict": true,
+    "allowImportingTsExtensions": true,
 
     // Emit
     "outDir": "./dist/",
@@ -17,6 +18,7 @@
     "sourceMap": true,
     "removeComments": false,
     "alwaysStrict": true,
+    "noEmit": true,
 
     // Display
     "noErrorTruncation": true,

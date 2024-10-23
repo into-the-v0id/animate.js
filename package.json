@@ -24,12 +24,16 @@
     "./dist/"
   ],
   "scripts": {
-    "build-clean": "rm -rf ./dist/",
-    "build-js": "tsc",
-    "build-types": "tsc --declaration --emitDeclarationOnly",
-    "build": "npm run build-clean && npm run build-js && npm run build-types"
+    "clean": "rm -rf ./dist/",
+    "ts:check": "tsc --noEmit",
+    "ts:build-types": "tsc --noEmit false --declaration --emitDeclarationOnly --outDir ./dist/",
+    "ts:build": "babel ./src/ --extensions .ts --out-dir ./dist/",
+    "build": "npm run clean && npm run ts:build-types && npm run ts:build"
   },
   "devDependencies": {
+    "@babel/cli": "^7.25.9",
+    "@babel/core": "^7.25.9",
+    "@babel/preset-typescript": "^7.25.9",
     "@types/node": "^22.1.0",
     "typescript": "^5.5.4"
   }
