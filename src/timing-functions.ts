@@ -1,8 +1,8 @@
 export interface TimingFunction {
     /**
-     * @param {Number} Time progress in percent between 0.0 and 1.0
+     * @param {Number} progress Time progress in percent between 0.0 and 1.0
      *
-     * @return {Number} State progress in percent between 0.0 and 1.0
+     * @return {Number} State progress in percent (1.0 = 100%)
      */
     (progress: number): number
 }
